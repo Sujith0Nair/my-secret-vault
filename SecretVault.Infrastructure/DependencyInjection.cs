@@ -26,6 +26,7 @@ public static class DependencyInjection
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddScoped<IIdentityService, IdentityService>();
         
         return services;
     }
