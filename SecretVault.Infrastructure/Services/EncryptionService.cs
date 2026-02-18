@@ -6,12 +6,12 @@ using SecretVault.Application.Interfaces;
 
 namespace SecretVault.Infrastructure.Services;
 
-public class EncryptionServices : IEncryptionService
+public class EncryptionService : IEncryptionService
 {
     private const string EncryptionKeyName = "EncryptionKey:SecretKey";
     private readonly byte[] _key;
 
-    public EncryptionServices(IConfiguration configuration)
+    public EncryptionService(IConfiguration configuration)
     {
         var secretKey = configuration[EncryptionKeyName];
         Guard.AgainstNullOrWhiteSpace(secretKey, EncryptionKeyName);
