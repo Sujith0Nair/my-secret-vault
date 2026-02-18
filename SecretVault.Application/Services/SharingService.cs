@@ -54,16 +54,80 @@ public class SharingService(IUnitOfWork unitOfWork) : ISharingService
     public async Task UpdateSharePermissionAsync(Guid secretId, Guid ownerUserId, Guid sharedWithUserId,
         UpdatePermissionDto updatePermissionDto)
     {
-        throw new NotImplementedException();
+        Guard.AgainstEmptyGuid(secretId, nameof(secretId));
+        Guard.AgainstEmptyGuid(ownerUserId, nameof(ownerUserId));
+        Guard.AgainstEmptyGuid(sharedWithUserId, nameof(sharedWithUserId));
+        Guard.AgainstNullObject(updatePermissionDto, nameof(updatePermissionDto));
+
+        if (updatePermissionDto.AccessLevel is >= AccessLevel.Owner or AccessLevel.None)
+        {
+            throw new ArgumentException("New access level for updating permission must be View, Edit or Delete", nameof(updatePermissionDto.AccessLevel));
+        }
+        
+        var secret = await unitOfWork.SecretRepository.GetByIdAsync(secretId);
+        if (secret is null)
+        {
+            throw new InvalidOperationException($"Secret with id {secretId} not found");
+        }
+
+        if (secret.OwnerUserId != ownerUserId)
+        {
+            throw new UnauthorizedAccessException($"User '{ownerUserId}' is not the owner of the secret '{secretId}'");
+        }
+        
+        secret.UpdateSharePermission(sharedWithUserId, updatePermissionDto.AccessLevel);
+        unitOfWork.SecretRepository.Update(secret);
+        
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task RevokeSharePermissionAsync(Guid secretId, Guid ownerUserId, Guid sharedWithUserId)
     {
-        throw new NotImplementedException();
+        Guard.AgainstEmptyGuid(secretId, nameof(secretId));
+        Guard.AgainstEmptyGuid(ownerUserId, nameof(ownerUserId));
+        Guard.AgainstEmptyGuid(sharedWithUserId, nameof(sharedWithUserId));
+        
+        var secret = await unitOfWork.SecretRepository.GetByIdAsync(secretId);
+        if (secret is null)
+        {
+            throw new InvalidOperationException($"Secret with id {secretId} not found");
+        }
+
+        if (secret.OwnerUserId != ownerUserId)
+        {
+            throw new UnauthorizedAccessException($"User '{ownerUserId}' is not the owner of the secret '{secretId}'");
+        }
+        
+        secret.RemoveSharePermission(sharedWithUserId);
+        unitOfWork.SecretRepository.Update(secret);
+        
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<PermissionDto>> GetPermissionsForSecretAsync(Guid secretId, Guid ownerUserId)
     {
-        throw new NotImplementedException();
+        Guard.AgainstEmptyGuid(secretId, nameof(secretId));
+        Guard.AgainstEmptyGuid(ownerUserId, nameof(ownerUserId));
+        
+        var secret = await unitOfWork.SecretRepository.GetByIdAsync(secretId);
+        if (secret is null)
+        {
+            throw new InvalidOperationException($"Secret with id {secretId} not found");
+        }
+
+        if (secret.OwnerUserId != ownerUserId)
+        {
+            throw new UnauthorizedAccessException(
+                $"User '{ownerUserId}' is not the owner of the secret '{secretId}' and cannot view its share permissions.");
+        }
+
+        var permissionDtos = new List<PermissionDto>();
+        foreach (var permission in secret.SharePermissions)
+        {
+            var sharedWithUser = await unitOfWork.UserRepository.GetByIdAsync(permission.SharedWithUserId);
+            permissionDtos.Add(PermissionDto.ToPermissionDto(permission, sharedWithUser));
+        }
+
+        return permissionDtos;
     }
 }

@@ -2,7 +2,7 @@
 
 public static class Guard
 {
-    public static void AgainstNullOrWhiteSpace(string value, string parameterName)
+    public static void AgainstNullOrWhiteSpace(string? value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))
         {

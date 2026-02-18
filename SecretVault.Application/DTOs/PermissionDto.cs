@@ -10,7 +10,7 @@ public class PermissionDto
     public string? SharedWithEmail { get; set; }
     public AccessLevel AccessLevel { get; set; }
 
-    public static PermissionDto ToPermissionDto(SharePermission sharePermission, User sharedWithUser)
+    public static PermissionDto ToPermissionDto(SharePermission sharePermission, User? sharedWithUser)
     {
         return new PermissionDto
         {
