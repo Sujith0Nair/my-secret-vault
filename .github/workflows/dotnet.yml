@@ -25,5 +25,17 @@ jobs:
     - name: Build Solution
       run: dotnet build SecretVault.sln --configuration Release --no-restore
 
-    - name: Run Tests
-      run: dotnet test SecretVault.sln --configuration Release --no-build --verbosity normal
+    - name: Run Unit Tests
+      run: dotnet test SecretVault.sln --configuration Release --no-build
+
+    - name: API Smoke Test (Health Check)
+      run: |
+        dotnet run --project SecretVault.Api/SecretVault.Api.csproj --configuration Release --no-build --urls "http://localhost:5000" &
+        sleep 10
+        curl -s --retry 10 --retry-delay 5 --retry-connrefused http://localhost:5000/health | grep "Healthy"
+      env:
+        Encryption__SecretKey: "dummy-key-for-testing-purposes-only"
+        Jwt__Key: "dummy-jwt-key-for-testing-purposes-only"
+        Jwt__Issuer: "http://localhost:5000"
+        Jwt__Audience: "http://localhost:5000"
+        ConnectionStrings__DefaultConnection: "Server=(localdb)\\MSSQLLocalDB;Database=Dummy;Trusted_Connection=True;"
