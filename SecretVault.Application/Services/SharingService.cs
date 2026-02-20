@@ -43,11 +43,9 @@ public class SharingService(IUnitOfWork unitOfWork) : ISharingService
         }
         
         secret.AddSharePermission(userToShareWith.Id, shareSecretDto.AccessLevel);
-        unitOfWork.SecretRepository.Update(secret);
-
         await unitOfWork.SaveChangesAsync();
 
-        var newPermission = secret.SharePermissions.First(p => p.SharedWithUserId == ownerUserId);
+        var newPermission = secret.SharePermissions.First(p => p.SharedWithUserId == userToShareWith.Id);
         return PermissionDto.ToPermissionDto(newPermission, userToShareWith);
     }
 
@@ -76,7 +74,6 @@ public class SharingService(IUnitOfWork unitOfWork) : ISharingService
         }
         
         secret.UpdateSharePermission(sharedWithUserId, updatePermissionDto.AccessLevel);
-        unitOfWork.SecretRepository.Update(secret);
         
         await unitOfWork.SaveChangesAsync();
     }
@@ -99,7 +96,6 @@ public class SharingService(IUnitOfWork unitOfWork) : ISharingService
         }
         
         secret.RemoveSharePermission(sharedWithUserId);
-        unitOfWork.SecretRepository.Update(secret);
         
         await unitOfWork.SaveChangesAsync();
     }

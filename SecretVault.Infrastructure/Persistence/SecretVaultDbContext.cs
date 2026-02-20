@@ -30,6 +30,7 @@ public class SecretVaultDbContext(DbContextOptions<SecretVaultDbContext> options
             entity.HasMany(s => s.SharePermissions)
                 .WithOne()
                 .HasForeignKey(sharePermission => sharePermission.SecretId)
+                .IsRequired()
                 .OnDelete(DeleteBehavior.Cascade);
         });
         
@@ -37,6 +38,7 @@ public class SecretVaultDbContext(DbContextOptions<SecretVaultDbContext> options
         {
             entity.ToTable("SharePermissions");
             entity.HasKey(s => s.Id);
+            entity.Property(s => s.Id).ValueGeneratedNever();
             
             entity.HasOne<ApplicationUser>()
                 .WithMany()

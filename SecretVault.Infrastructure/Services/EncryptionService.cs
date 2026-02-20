@@ -8,7 +8,7 @@ namespace SecretVault.Infrastructure.Services;
 
 public class EncryptionService : IEncryptionService
 {
-    private const string EncryptionKeyName = "EncryptionKey:SecretKey";
+    private const string EncryptionKeyName = "Encryption:SecretKey";
     private readonly byte[] _key;
 
     public EncryptionService(IConfiguration configuration)

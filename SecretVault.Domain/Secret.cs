@@ -37,6 +37,7 @@ public class Secret
         
         Title = newTitle;
         EncryptedContent = newEncryptedContent;
+        LastModifiedAt = DateTime.UtcNow;
     }
 
     public void AddSharePermission(Guid sharedWithUserId, AccessLevel accessLevel)
@@ -50,6 +51,7 @@ public class Secret
         }
         
         _sharePermissions.Add(new SharePermission(Id, sharedWithUserId, accessLevel));
+        LastModifiedAt = DateTime.UtcNow;
     }
 
     public void UpdateSharePermission(Guid sharedWithUserId, AccessLevel accessLevel)
@@ -65,6 +67,7 @@ public class Secret
         }
         
         existingPermission.UpdateAccessLevel(accessLevel);
+        LastModifiedAt = DateTime.UtcNow;
     }
 
     public void RemoveSharePermission(Guid sharedWithUserId)
@@ -76,5 +79,6 @@ public class Secret
         {
             throw new InvalidOperationException($"Share permission with user id '{sharedWithUserId}' was not found");
         }
+        LastModifiedAt = DateTime.UtcNow;
     }
 }
