@@ -2,61 +2,84 @@
 
 ## Project Overview
 
-"My Secret Vault" is an ASP.NET Core Web API project designed to provide a secure and manageable text storage service. Users can store sensitive text information, which will be encrypted at rest in the database. The system allows users to share access to their stored secrets with other users, granting granular permissions (view, edit, all, which includes delete). The owner of a secret retains full CRUD (Create, Read, Update, Delete) access.
+"My Secret Vault" is a secure, professional-grade ASP.NET Core Web API designed for storing and sharing sensitive text information. Built with a focus on security and high-level architecture, it ensures that your data remains private and accessible only to authorized users.
 
 ## Core Features
 
-*   **Secure API Endpoints:** For storing, retrieving, updating, and deleting secrets.
-*   **User Authentication:** Secure user registration, login, and session management.
-*   **Data Encryption:** Cryptographic encryption of user secrets before storage in the database.
-*   **Access Control & Sharing:**
-    *   Owners can share secrets with other users via email.
-    *   Configurable access levels: View, Edit, All (View, Edit, Delete).
-    *   Shared users can perform actions based on granted permissions.
-*   **Owner Privileges:** Full CRUD operations for owned secrets.
+*   **AES-256 Encryption:** All secrets are cryptographically encrypted before being stored in the database.
+*   **Granular Access Control:** 
+    *   **Owner:** Full control (CRUD + sharing management).
+    *   **Delete:** Can view, edit, and delete the secret.
+    *   **Edit:** Can view and modify the secret.
+    *   **View:** Can only read the decrypted content.
+*   **Secure Authentication:** Built on ASP.NET Core Identity with JWT Bearer tokens for stateless, secure API access.
+*   **Input Validation:** Two-layered validation using FluentValidation (API layer) and Domain Guard Clauses (Domain layer).
+*   **Standardized Error Handling:** Global Exception Handling using `IExceptionHandler` returning RFC 7807 compliant `ProblemDetails`.
 
 ## Architectural Design: Clean / Onion Architecture
 
-The project adheres to the Clean/Onion Architecture principles, ensuring a clear separation of concerns, high maintainability, and testability. The architecture is structured into distinct layers, with dependencies strictly pointing inwards towards the core Domain.
+The project follows Clean Architecture principles to ensure the core business logic is isolated from external frameworks and infrastructure concerns.
 
-### 1. `SecretVault.Domain` (Core Business Entities & Rules)
-*   **Responsibility:** Contains the foundational business entities and core domain rules. It is entirely independent, with no dependencies on other layers.
-*   **Contents:**
-    *   `Secret` entity (Id, OwnerUserId, EncryptedContent, CreatedAt, etc.)
-    *   `User` entity (base for ASP.NET Core Identity's `ApplicationUser`)
-    *   `SharePermission` entity (SecretId, SharedWithUserId, AccessLevel)
-    *   `AccessLevel` enum (View, Edit, Owner)
+### 1. `SecretVault.Domain`
+*   **Core Entities:** `Secret`, `User`, `SharePermission`.
+*   **Rich Domain Model:** Business rules (invariants) are enforced within the entities themselves using the "Aggregate Root" pattern.
+*   **Guard Clauses:** Custom validation utility to ensure the domain is always in a valid state.
 
-### 2. `SecretVault.Application` (Application-Specific Business Logic & Use Cases)
-*   **Responsibility:** Orchestrates domain entities to implement specific application use cases. Defines interfaces for infrastructure concerns. Depends only on `SecretVault.Domain`.
-*   **Contents:**
-    *   **Interfaces:** `ISecretRepository`, `ISharingRepository`, `IEncryptionService`, `IUnitOfWork`.
-    *   **Services/Use Cases:** `SecretService`, `SharingService`.
-    *   **DTOs:** For input/output of use cases (e.g., `CreateSecretDto`, `ShareSecretDto`).
-    *   **Validation:** Input validation logic.
+### 2. `SecretVault.Application`
+*   **Use Cases:** `SecretService` and `SharingService` orchestrate the application logic.
+*   **Interfaces:** Defines contracts for Infrastructure (Repositories, Encryption, Identity).
+*   **Validation:** FluentValidation rules for all incoming DTOs.
 
-### 3. `SecretVault.Infrastructure` (External Details & Implementations)
-*   **Responsibility:** Provides concrete implementations for interfaces defined in the `Application` layer. Handles external concerns like databases, external services, and authentication. Depends on `SecretVault.Application`.
-*   **Contents:**
-    *   **Persistence:** Entity Framework Core DbContext (`SecretVaultDbContext`), concrete repository implementations (`SecretRepository`).
-    *   **Services:** Implementation of `IEncryptionService` (e.g., using `System.Security.Cryptography`).
-    *   **Identity:** Configuration and integration with ASP.NET Core Identity.
+### 3. `SecretVault.Infrastructure`
+*   **Persistence:** EF Core with SQL Server. Implements Repositories and a Unit of Work.
+*   **Security Implementation:** Concrete `EncryptionService` (AES-256) and `IdentityService`.
+*   **Identity:** Integration with ASP.NET Core Identity using GUID primary keys.
 
-### 4. `SecretVault.Api` (Presentation Layer / Entry Point)
-*   **Responsibility:** The ASP.NET Core Web API project. Handles HTTP requests, performs model binding and validation, and returns HTTP responses. Configures dependency injection and middleware. Depends on `SecretVault.Application` and `SecretVault.Infrastructure` (for DI setup).
-*   **Contents:**
-    *   **Controllers:** API endpoints (e.g., `SecretsController`).
-    *   **Middleware:** Custom middleware.
-    *   **Configuration:** `Program.cs` for service registration, middleware pipeline setup, and authentication/authorization.
+### 4. `SecretVault.Api`
+*   **Entry Point:** RESTful Controllers and Middleware.
+*   **Modern UI:** Scalar API Reference for superior developer experience and documentation.
+*   **Configuration:** Clean `Program.cs` utilizing extension methods for service registration.
 
-## Key Technology Decisions
+## Key Technology Stack
 
-*   **Backend Framework:** ASP.NET Core Web API
-*   **Architecture:** Clean / Onion Architecture
-*   **Database:** (To be determined, likely SQL Server with Entity Framework Core)
-*   **Authentication:** ASP.NET Core Identity with JWT Bearer Tokens
-*   **JWT Key Storage:** `.NET User Secrets` will be used for storing sensitive JWT signing keys during development, and appropriate production-grade secrets management (e.g., Azure Key Vault, AWS Secrets Manager) will be implemented for deployment.
+*   **Framework:** .NET 9.0 (ASP.NET Core)
+*   **Database:** SQL Server via Entity Framework Core
+*   **Security:** AES-256 Symmetric Encryption, JWT Bearer Tokens
+*   **Validation:** FluentValidation
+*   **Documentation:** Scalar (OpenAPI 3.1)
 
 ## Getting Started
 
-*(Placeholder for future instructions on setup, building, and running the project.)*
+### Prerequisites
+*   [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+*   [SQL Server Express](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) or LocalDB
+*   `dotnet-ef` tool: `dotnet tool install --global dotnet-ef`
+
+### Setup
+1.  **Clone the repository.**
+2.  **Initialize User Secrets:**
+    ```powershell
+    dotnet user-secrets init --project SecretVault.Api/SecretVault.Api.csproj
+    ```
+3.  **Configure Secrets:**
+    ```powershell
+    # Connection String
+    dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\MSSQLLocalDB;Database=SecretVaultDb;Trusted_Connection=True;MultipleActiveResultSets=True" --project SecretVault.Api/SecretVault.Api.csproj
+
+    # Encryption Key (32-char random string)
+    dotnet user-secrets set "Encryption:SecretKey" "YOUR_RANDOM_32_CHAR_STRING_HERE" --project SecretVault.Api/SecretVault.Api.csproj
+
+    # JWT Key (32-char random string)
+    dotnet user-secrets set "Jwt:Key" "YOUR_RANDOM_JWT_SIGNING_KEY_HERE" --project SecretVault.Api/SecretVault.Api.csproj
+    dotnet user-secrets set "Jwt:Issuer" "https://localhost:7095" --project SecretVault.Api/SecretVault.Api.csproj
+    dotnet user-secrets set "Jwt:Audience" "https://localhost:7095" --project SecretVault.Api/SecretVault.Api.csproj
+    ```
+4.  **Apply Database Migrations:**
+    ```powershell
+    dotnet ef database update --project SecretVault.Infrastructure/SecretVault.Infrastructure.csproj --startup-project SecretVault.Api/SecretVault.Api.csproj
+    ```
+
+### Running the Application
+1.  Start the project: `dotnet run --project SecretVault.Api/SecretVault.Api.csproj`
+2.  Open the Scalar documentation: `https://localhost:7095/scalar/v1`
+3.  **Register** a user, **Login** to get a token, and start vaulting!
