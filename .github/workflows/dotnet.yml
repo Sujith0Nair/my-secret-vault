@@ -34,8 +34,8 @@ jobs:
         sleep 10
         curl -s --retry 10 --retry-delay 5 --retry-connrefused http://localhost:5000/health | grep "Healthy"
       env:
-        Encryption__SecretKey: "dummy-key-for-testing-purposes-only"
-        Jwt__Key: "dummy-jwt-key-for-testing-purposes-only"
-        Jwt__Issuer: "http://localhost:5000"
-        Jwt__Audience: "http://localhost:5000"
-        ConnectionStrings__DefaultConnection: "Server=(localdb)\\MSSQLLocalDB;Database=Dummy;Trusted_Connection=True;"
+        Encryption__SecretKey: ${{ secrets.CI_ENCRYPTION_KEY }}
+        Jwt__Key: ${{ secrets.CI_JWT_KEY }}
+        Jwt__Issuer: ${{ vars.CI_JWT_ISSUER }}
+        Jwt__Audience: ${{ vars.CI_JWT_ISSUER }}
+        ConnectionStrings__DefaultConnection: ${{ vars.CI_CONNECTION_STRING }}
