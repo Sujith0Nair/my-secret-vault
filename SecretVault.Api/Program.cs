@@ -1,8 +1,8 @@
-using Scalar.AspNetCore;
 using SecretVault.Application;
 using SecretVault.Api.Extensions;
 using SecretVault.Infrastructure;
 using SecretVault.Api.Middleware;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,19 +16,15 @@ builder.Services.AddAuth(builder.Configuration);
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+builder.Services.AddFluentValidationAutoValidation();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference(options =>
-    {
-        options.WithTitle("SecretVault API")
-            .WithTheme(ScalarTheme.Moon)
-            .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-    });
+    app.SetupScalarUi();
 }
 
 app.UseHttpsRedirection();

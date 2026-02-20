@@ -56,4 +56,15 @@ public static class OpenApiExtensions
 
         return app;
     }
+
+    public static void SetupScalarUi(this WebApplication app)
+    {
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options.WithTitle("SecretVault API")
+                .WithTheme(ScalarTheme.Moon)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        });
+    }
 }

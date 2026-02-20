@@ -1,4 +1,5 @@
-﻿using SecretVault.Application.Services;
+﻿using FluentValidation;
+using SecretVault.Application.Services;
 using SecretVault.Application.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,9 @@ public static class DependencyInjection
     {
         services.AddScoped<ISecretService, SecretService>();
         services.AddScoped<ISharingService, SharingService>();
+        
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+        
         return services;
     }
 }
